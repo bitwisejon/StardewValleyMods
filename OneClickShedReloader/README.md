@@ -7,6 +7,7 @@ all supported containers in a Shed or Barn with a single click on the outside of
 * [Supported Buildings](#supported-buildings)
 * [Supported Containers](#supported-containers)
 * [Notes](#Notes)
+* [Mod Compatibility](#mod-compatibility)
 * [Versions](#versions)
 * [See also](#see-also)
 
@@ -51,6 +52,10 @@ This mod does not affect your save game files in any way. There are no known com
 with any mod that displays information while hovering the cursor over a building, or with mods that handle click events on buildings. If you 
 discover any problems while using the mod, you can log an issue on the [BitwiseJon GitHub page](https://github.com/bitwisejon/StardewValleyMods/issues).
 Only U.S. English text is provided at this time.
+
+## Mod Compatibility
+This mod is fully compatible with:
+* [Instant Buildings from Farm](http://www.nexusmods.com/stardewvalley/mods/2070) by me.
 
 ## Versions
 See [release notes](release-notes.md).

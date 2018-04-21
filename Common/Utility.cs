@@ -1,14 +1,9 @@
 ﻿using StardewModdingAPI;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace BitwiseJonMods
+namespace BitwiseJonMods.Common
 {
-    static class Utility
+    public static class Utility
     {
         private static IMonitor _monitor;
 
