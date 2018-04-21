@@ -32,7 +32,7 @@ namespace BitwiseJonMods
 
         public override void Entry(IModHelper helper)
         {
-            Utility.InitLogging(this.Monitor);
+            Common.Utility.InitLogging(this.Monitor);
 
             InputEvents.ButtonPressed += this.InputEvents_ButtonPressed;
             GraphicsEvents.OnPreRenderHudEvent += DrawHoverTooltip;
@@ -114,19 +114,19 @@ namespace BitwiseJonMods
                 //If world is ready (save is loaded) and player left clicked on a supported building, harvest and reload items in that building. Make sure menu is not showing.
                 if (Context.IsWorldReady && Game1.didPlayerJustLeftClick() && Game1.currentLocation is Farm farm && Game1.activeClickableMenu == null)
                 {
-                    Utility.Log($"{DateTime.Now} - {Game1.player.name} left clicked on something on the farm.");
+                    Common.Utility.Log($"{DateTime.Now} - {Game1.player.name} left clicked on something on the farm.");
 
                     if (DidPlayerClickOnASupportedBuilding())
                     {
                         e.SuppressButton();
-                        Utility.Log($"{DateTime.Now} - {Game1.player.name} clicked on a supported building to harvest all supported containers within it.");
+                        Common.Utility.Log($"{DateTime.Now} - {Game1.player.name} clicked on a supported building to harvest all supported containers within it.");
                         HarvestAllItemsInBuilding(_currentTileBuilding);
                     }
                 }
             }
             catch (Exception ex)
             {
-                Utility.Log($"Exception in BitwiseJonMods.OneClickShedReloader mod: {ex.Message}", LogLevel.Error);
+                Common.Utility.Log($"Exception in BitwiseJonMods.OneClickShedReloader mod: {ex.Message}", LogLevel.Error);
             }
         }
 
@@ -137,7 +137,7 @@ namespace BitwiseJonMods
             //Only supporting buildings on the farm and on left click since right-click sometimes asks if user wants to eat the item they are holding.
             if (_currentTileBuilding != null)
             {
-                Utility.Log($"{DateTime.Now} - {Game1.player.name} clicked on a building.");
+                Common.Utility.Log($"{DateTime.Now} - {Game1.player.name} clicked on a building.");
 
                 //Need to get tile location so we can tell if the building is close enough to the player for an action.
                 var tileLocation = GetCursorTileLocation();
@@ -161,9 +161,9 @@ namespace BitwiseJonMods
         {
             var buildingInfo = new BuildingContentsInfo(building, _supportedContainerTypes);
 
-            Utility.Log($"  {buildingInfo.Containers.Count()} containers found in building.");
-            Utility.Log($"  Of these containers, {buildingInfo.ReadyToHarvestContainers.Count()} are ready for harvest.");
-            Utility.Log($"  Of these containers, {buildingInfo.ReadyToLoadContainers.Count()} are empty and ready to be loaded.");
+            Common.Utility.Log($"  {buildingInfo.Containers.Count()} containers found in building.");
+            Common.Utility.Log($"  Of these containers, {buildingInfo.ReadyToHarvestContainers.Count()} are ready for harvest.");
+            Common.Utility.Log($"  Of these containers, {buildingInfo.ReadyToLoadContainers.Count()} are empty and ready to be loaded.");
 
             var buildingHandler = new BuildingContentsHandler(buildingInfo);
             int numItemsHarvested = 0;
@@ -181,7 +181,7 @@ namespace BitwiseJonMods
             }
             catch (Exception ex)
             {
-                Utility.Log($"Exception while harvesting contents in BitwiseJonMods.OneClickShedReloader.HarvestAllItemsInBuilding: {ex.Message}", LogLevel.Error);
+                Common.Utility.Log($"Exception while harvesting contents in BitwiseJonMods.OneClickShedReloader.HarvestAllItemsInBuilding: {ex.Message}", LogLevel.Error);
             }
 
             if (numItemsHarvested > 0)
@@ -203,7 +203,7 @@ namespace BitwiseJonMods
             }
             catch (Exception ex)
             {
-                Utility.Log($"Exception while loading contents in BitwiseJonMods.OneClickShedReloader.HarvestAllItemsInBuilding: {ex.Message}", LogLevel.Error);
+                Common.Utility.Log($"Exception while loading contents in BitwiseJonMods.OneClickShedReloader.HarvestAllItemsInBuilding: {ex.Message}", LogLevel.Error);
             }
 
             if (numItemsLoaded > 0)
