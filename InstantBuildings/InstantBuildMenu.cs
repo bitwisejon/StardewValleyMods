@@ -15,6 +15,7 @@ namespace BitwiseJonMods
 {
     public class InstantBuildMenu : IClickableMenu
     {
+        private const int MENU_DELAY = 200;
         public int maxWidthOfBuildingViewer = 7 * Game1.tileSize;
         public int maxHeightOfBuildingViewer = 8 * Game1.tileSize;
         public int maxWidthOfDescription = 6 * Game1.tileSize;
@@ -59,11 +60,11 @@ namespace BitwiseJonMods
             }
         }
 
-        public InstantBuildMenu(ModConfig config)
+        public InstantBuildMenu(ModConfig config, BluePrint tractorBlueprint)
         {
             _config = config;
 
-            Game1.displayFarmer = false;
+            //Game1.displayFarmer = false;
             this.magicalConstruction = true;
             Game1.player.forceCanMove();
             this.resetBounds();
@@ -82,10 +83,18 @@ namespace BitwiseJonMods
             this.blueprints.Add(new BluePrint("Deluxe Coop"));
             this.blueprints.Add(new BluePrint("Big Barn"));
             this.blueprints.Add(new BluePrint("Deluxe Barn"));
-            this.blueprints.Add(new BluePrint("Junimo Hut"));
-            this.blueprints.Add(new BluePrint("Earth Obelisk"));
-            this.blueprints.Add(new BluePrint("Water Obelisk"));
-            this.blueprints.Add(new BluePrint("Gold Clock"));
+            if (tractorBlueprint != null)
+            {
+                this.blueprints.Add(tractorBlueprint);
+            }
+
+            if (_config.AllowMagicalBuildingsWithoutMagicInk || (!_config.AllowMagicalBuildingsWithoutMagicInk && Game1.player.hasMagicInk))
+            {
+                this.blueprints.Add(new BluePrint("Junimo Hut"));
+                this.blueprints.Add(new BluePrint("Earth Obelisk"));
+                this.blueprints.Add(new BluePrint("Water Obelisk"));
+                this.blueprints.Add(new BluePrint("Gold Clock"));
+            }
 
             ModifyBlueprints();
 
@@ -258,12 +267,11 @@ namespace BitwiseJonMods
                 return;
             if (!this.onFarm)
                 base.receiveKeyPress(key);
-            if (Game1.globalFade || !this.onFarm)
+            if (Game1.delayedActions.Count() > 0 || !this.onFarm)
                 return;
             if (Game1.options.doesInputListContain(Game1.options.menuButton, key) && this.readyToClose())
             {
-                //Game1.globalFadeToClear(new Game1.afterFadeFunction(this.returnToFarm), 0.02f);
-                Game1.delayedActions.Add(new DelayedAction(100, new DelayedAction.delayedBehavior(this.returnToFarm)));
+                Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.returnToFarm)));
             }
             else
             {
@@ -289,7 +297,7 @@ namespace BitwiseJonMods
         public override void update(GameTime time)
         {
             base.update(time);
-            if (!this.onFarm || Game1.globalFade)
+            if (!this.onFarm || Game1.delayedActions.Count() > 0)
                 return;
             int num1 = Game1.getOldMouseX() + Game1.viewport.X;
             int num2 = Game1.getOldMouseY() + Game1.viewport.Y;
@@ -329,9 +337,7 @@ namespace BitwiseJonMods
                         Game1.playSound("cancel");
                         return;
                     }
-                    //Game1.globalFadeToClear(new Game1.afterFadeFunction(this.returnToFarm), 0.02f);
-                    Game1.delayedActions.Add(new DelayedAction(100, new DelayedAction.delayedBehavior(this.returnToFarm)));
-                    //this.returnToFarm();
+                    Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.returnToFarm)));
                     Game1.playSound("smallSelect");
                     return;
                 }
@@ -354,28 +360,25 @@ namespace BitwiseJonMods
             }
             if (!this.onFarm && this.demolishButton.containsPoint(x, y))
             {
-                //Game1.globalFadeToClear(new Game1.afterFadeFunction(this.setUpForBuildingPlacement), 0.02f);
-                Game1.delayedActions.Add(new DelayedAction(100, new DelayedAction.delayedBehavior(this.setUpForBuildingPlacement)));
+                Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.setUpForBuildingPlacement)));
                 Game1.playSound("smallSelect");
                 this.onFarm = true;
                 this.demolishing = true;
             }
             if (!this.onFarm && this.moveButton.containsPoint(x, y))
             {
-                //Game1.globalFadeToClear(new Game1.afterFadeFunction(this.setUpForBuildingPlacement), 0.02f);
-                Game1.delayedActions.Add(new DelayedAction(100, new DelayedAction.delayedBehavior(this.setUpForBuildingPlacement)));
+                Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.setUpForBuildingPlacement)));
                 Game1.playSound("smallSelect");
                 this.onFarm = true;
                 this.moving = true;
             }
             if (this.okButton.containsPoint(x, y) && !this.onFarm && (Game1.player.money >= this.price && this.blueprints[this.currentBlueprintIndex].doesFarmerHaveEnoughResourcesToBuild()))
             {
-                //Game1.globalFadeToClear(new Game1.afterFadeFunction(this.setUpForBuildingPlacement), 0.02f);
-                Game1.delayedActions.Add(new DelayedAction(100, new DelayedAction.delayedBehavior(this.setUpForBuildingPlacement)));
+                Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.setUpForBuildingPlacement)));
                 Game1.playSound("smallSelect");
                 this.onFarm = true;
             }
-            if (!this.onFarm || this.freeze || Game1.globalFade)
+            if (!this.onFarm || this.freeze || Game1.delayedActions.Count() > 0)
                 return;
             if (this.demolishing)
             {
@@ -397,7 +400,7 @@ namespace BitwiseJonMods
                     Game1.playSound("explosion");
                     Utility.spreadAnimalsAround(buildingAt, (Farm)Game1.getLocationFromName("Farm"));
                     //DelayedAction.fadeAfterDelay(new Game1.afterFadeFunction(this.returnToFarm), 500);
-                    Game1.delayedActions.Add(new DelayedAction(500, new DelayedAction.delayedBehavior(this.returnToFarm)));
+                    Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.returnToFarm)));
                     //this.returnToFarm();
                     this.freeze = true;
                 }
@@ -409,11 +412,8 @@ namespace BitwiseJonMods
                 {
                     this.CurrentBlueprint.consumeResources();
                     doInstantUpgrade(buildingAt);
-                    //buildingAt.showUpgradeAnimation((GameLocation)Game1.getFarm());
                     Game1.playSound("axe");
-                    //DelayedAction.fadeAfterDelay(new Game1.afterFadeFunction(this.returnToFarm), 10);
-                    Game1.delayedActions.Add(new DelayedAction(500, new DelayedAction.delayedBehavior(this.returnToFarm)));
-                    //this.returnToFarm();
+                    Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.returnToFarm)));
                     this.freeze = true;
                 }
                 else
@@ -453,9 +453,7 @@ namespace BitwiseJonMods
             else if (this.tryToBuild())
             {
                 this.CurrentBlueprint.consumeResources();
-                //DelayedAction.fadeAfterDelay(new Game1.afterFadeFunction(this.returnToFarm), 500);
-                Game1.delayedActions.Add(new DelayedAction(500, new DelayedAction.delayedBehavior(this.returnToFarm)));
-                //this.returnToFarm();
+                Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.returnToFarm)));
                 this.freeze = true;
             }
             else
@@ -493,24 +491,24 @@ namespace BitwiseJonMods
             Game1.currentLocation.cleanupBeforePlayerExit();
             Game1.currentLocation = Game1.getLocationFromName("Farm");
             Game1.currentLocation.resetForPlayerEntry();
-            //Game1.globalFadeToClear((Game1.afterFadeFunction)null, 0.02f);
-            Game1.delayedActions.Add(new DelayedAction(100, new DelayedAction.delayedBehavior(this.doNothing)));
+            Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.doNothing)));
             this.onFarm = false;
             this.resetBounds();
             this.upgrading = false;
             this.moving = false;
-            this.freeze = false;
+            this.freeze = true;
             Game1.displayHUD = true;
             Game1.viewportFreeze = false;
             Game1.viewport.Location = new Location(5 * Game1.tileSize, 24 * Game1.tileSize);
             this.drawBG = true;
             this.demolishing = false;
-            Game1.displayFarmer = false;
+            //Game1.displayFarmer = false;
         }
 
         public void doNothing()
         {
-
+            //Used to replace screen fades and clears to remove the blinking effect -- not needed since we are not flashing between Robin's shop and the farm.
+            this.freeze = false;
         }
 
         public override bool overrideSnappyMenuCursorMovementBan()
@@ -524,8 +522,7 @@ namespace BitwiseJonMods
             this.hoverText = "";
             Game1.currentLocation = Game1.getLocationFromName("Farm");
             Game1.currentLocation.resetForPlayerEntry();
-            //Game1.globalFadeToClear((Game1.afterFadeFunction)null, 0.02f);
-            Game1.delayedActions.Add(new DelayedAction(100, new DelayedAction.delayedBehavior(this.doNothing)));
+            Game1.delayedActions.Add(new DelayedAction(MENU_DELAY, new DelayedAction.delayedBehavior(this.doNothing)));
             this.onFarm = true;
             this.cancelButton.bounds.X = Game1.viewport.Width - Game1.tileSize * 2;
             this.cancelButton.bounds.Y = Game1.viewport.Height - Game1.tileSize * 2;
@@ -534,8 +531,8 @@ namespace BitwiseJonMods
             Game1.viewport.Location = new Location((Game1.player.getTileX() * Game1.tileSize) - (Game1.viewport.Width/2), (Game1.player.getTileY() * Game1.tileSize) - (Game1.viewport.Height/2));
             Game1.panScreen(0, 0);
             this.drawBG = false;
-            this.freeze = false;
-            Game1.displayFarmer = false;
+            this.freeze = true;
+            //Game1.displayFarmer = false;
             if (this.demolishing || this.CurrentBlueprint.nameOfBuildingToUpgrade == null || (this.CurrentBlueprint.nameOfBuildingToUpgrade.Length <= 0 || this.moving))
                 return;
             this.upgrading = true;
@@ -550,7 +547,7 @@ namespace BitwiseJonMods
         {
             if (this.drawBG)
                 b.Draw(Game1.fadeToBlackRect, Game1.graphics.GraphicsDevice.Viewport.Bounds, Color.Black * 0.5f);
-            if (Game1.globalFade || this.freeze)
+            if (Game1.delayedActions.Count() > 0 || this.freeze)
                 return;
             if (!this.onFarm)
             {
