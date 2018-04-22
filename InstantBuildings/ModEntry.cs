@@ -65,14 +65,30 @@ namespace BitwiseJonMods
 
         private void getTractorBlueprintFromCarpenterMenu()
         {
-            var menu = ((CarpenterMenu)Game1.activeClickableMenu);
+            BluePrint tractorBlueprint = null;
 
-            var blueprints = this.Helper.Reflection
-                .GetField<List<BluePrint>>(menu, "blueprints")
-                .GetValue();
+            try
+            {
+                IClickableMenu menu = Game1.activeClickableMenu is CarpenterMenu ? (CarpenterMenu)Game1.activeClickableMenu : null;
 
-            var tractorBlueprint = blueprints.SingleOrDefault(b => b.name == "TractorGarage");
-            menu.exitThisMenu();
+                if (menu != null)
+                {
+                    var blueprints = this.Helper.Reflection
+                        .GetField<List<BluePrint>>(menu, "blueprints")
+                        .GetValue();
+
+                    tractorBlueprint = blueprints.SingleOrDefault(b => b.name == "TractorGarage");
+                    menu.exitThisMenu();
+                }
+                else
+                {
+                    BitwiseJonMods.Common.Utility.Log("Unable to get Carpenter menu as active game menu. Might be another type.");
+                }
+            }
+            catch (Exception ex)
+            {
+                BitwiseJonMods.Common.Utility.Log(string.Format("Exception trying to load Tractor blueprint, probably due to an incompatibility with another mod: {0}", ex.Message), LogLevel.Error);
+            }
 
             activateInstantBuildMenu(tractorBlueprint);
         }
