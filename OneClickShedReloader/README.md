@@ -1,5 +1,5 @@
 ﻿**One Click Shed Reloader** is a [Stardew Valley](http://stardewvalley.net/) mod which lets you harvest and reload
-all supported containers in a Shed or Barn with a single click on the outside of the building.
+all supported containers in a Shed, Barn, or Coop with a single click on the outside of the building.
 
 ## Contents
 * [Install](#install)
@@ -37,6 +37,7 @@ enter it again!
 The following buildings are currently supported. If there is enough demand, I plan to add support for other buildings (and the Cellar!) as well.
 * Shed
 * Barn (any size)
+* Shed (any size)
 
 ## Supported Containers
 The following containers are currently supported. If there is enough demand, I plan to add support for other containers as well.

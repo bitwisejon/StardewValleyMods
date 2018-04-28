@@ -16,7 +16,8 @@ namespace BitwiseJonMods
     {
         private List<string> _supportedBuildingTypes = new List<string>() {
             "Shed",
-            "Barn"
+            "Barn",
+            "Coop"
         };
 
         private List<string> _supportedContainerTypes = new List<string>() {
