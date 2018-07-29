@@ -3,7 +3,7 @@
 ## Contents
 * [Install](#install)
 * [Use](#use)
-* [Buildings](#supported-buildings)
+* [Buildings](#buildings)
 * [Configuration](#configuration)
 * [Mod Compatibility](#mod-compatibility)
 * [Versions](#versions)
