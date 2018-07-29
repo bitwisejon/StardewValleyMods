@@ -17,7 +17,7 @@ namespace BitwiseJonMods
 
         public BuildingContentsInfo(Building building, List<string> supportedContainerTypes)
         {
-            if (building == null || building.indoors == null)
+            if (building == null || building.indoors.Value == null)
             {
                 Containers = null;
                 NumberOfContainers = 0;
@@ -26,9 +26,11 @@ namespace BitwiseJonMods
             }
             else
             {
-                Containers = building.indoors.Objects.Where(o => supportedContainerTypes.Any(c => o.Value.Name == c)).Select(o => o.Value);
-                ReadyToHarvestContainers = Containers.Where(c => c.heldObject != null && c.readyForHarvest == true);
-                ReadyToLoadContainers = Containers.Where(c => c.heldObject == null && c.readyForHarvest == false);
+                var indoors = building.indoors.Value;
+                var objects = indoors.objects.Values;
+                Containers = objects.Where(o => supportedContainerTypes.Any(c => o.Name == c)).Select(o => o);
+                ReadyToHarvestContainers = Containers.Where(c => c.heldObject.Value != null && c.readyForHarvest.Value == true);
+                ReadyToLoadContainers = Containers.Where(c => c.heldObject.Value == null && c.readyForHarvest.Value == false);
 
                 NumberOfContainers = Containers.Count();
                 NumberReadyToHarvest = ReadyToHarvestContainers.Count();

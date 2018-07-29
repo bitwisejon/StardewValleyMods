@@ -30,8 +30,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Netcode">
+      <HintPath>..\..\..\..\SteamLibrary\SteamApps\common\Stardew Valley\Netcode.dll</HintPath>
+    </Reference>
     <Reference Include="Stardew Valley">
       <HintPath>..\..\..\..\SteamLibrary\SteamApps\common\Stardew Valley\Stardew Valley.exe</HintPath>
     </Reference>

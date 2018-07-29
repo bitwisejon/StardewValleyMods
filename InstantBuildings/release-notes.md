@@ -1,4 +1,7 @@
 ﻿# Release notes
+## 1.0.3
+* Added support for Stardew Valley v1.3 and Multiplayer.
+
 ## 1.0.1
 * Updated manifest.json with UpdateKeys that match the NexusMod ID for auto-updating. Removed StardewModdingAPI.ModBuildConfig.dll from output.
 
