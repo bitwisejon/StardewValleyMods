@@ -1,4 +1,4 @@
-﻿**One Click Shed Reloader** is a [Stardew Valley](http://stardewvalley.net/) mod which lets you harvest and reload
+﻿**One Click Shed Reloader** is a [Stardew Valley](http://stardewvalley.net/) v1.3+ mod which lets you harvest and reload
 all supported containers in a Shed, Barn, or Coop with a single click on the outside of the building.
 
 ## Contents
@@ -47,6 +47,7 @@ The following containers are currently supported. If there is enough demand, I p
 * Loom
 * Mayonnaise Machine
 * Cheese Press
+* Crystalariums
 
 ## Notes
 This mod does not affect your save game files in any way. There are no known compatibility issues with this mod, but there could be problems
@@ -55,6 +56,8 @@ discover any problems while using the mod, you can log an issue on the [BitwiseJ
 Only U.S. English text is provided at this time.
 
 ## Mod Compatibility
+**Note:*** This mod is only compatible with version 1.3+ of Stardew Valley (released 8/1/18) and works in multiplayer as well. Starting with version 1.0.3 of this mod, Stardew Valley v1.2* is no longer supported. 
+
 This mod is fully compatible with:
 * [Instant Buildings from Farm](http://www.nexusmods.com/stardewvalley/mods/2070) by me.
 

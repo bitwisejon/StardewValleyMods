@@ -21,13 +21,21 @@ namespace BitwiseJonMods
             foreach (var container in _buildingInfo.ReadyToHarvestContainers)
             {
                 //Get the item stored in the container
-                var item = (StardewValley.Item)container.heldObject;
+                StardewValley.Item item = null;
+                if (container.name.Equals("Crystalarium"))
+                {
+                    item = (StardewValley.Item)container.heldObject.Value.getOne();
+                }
+                else
+                { 
+                    item = (StardewValley.Item)container.heldObject.Value;
+                }
 
                 //Make sure player can collect item and inventory is not already full
                 if (player.couldInventoryAcceptThisItem(item))
                 {
                     //this.Monitor.Log($"  Harvesting item {item.Name} from container {container.Name} and placing in {player.Name}'s inventory.");
-                    if (player.IsMainPlayer && !player.addItemToInventoryBool(item, false))
+                    if (!player.addItemToInventoryBool(item, false))
                     {
                         //Inventory was full - throw exception so we can show a message
                         Utility.Log($"  {player.Name} has run out of inventory space. Stopping harvest.");
@@ -35,10 +43,19 @@ namespace BitwiseJonMods
                     }
                     numItemsHarvested++;
 
-                    //Remove this item permanently from the container
-                    container.heldObject = (StardewValley.Object)null;
-                    container.readyForHarvest = false;
-                    container.showNextIndex = false;
+                    //Remove this item permanently from the container (except Crystalarium).
+                    if (container.name.Equals("Crystalarium"))
+                    {
+                        container.MinutesUntilReady = this.getMinutesForCrystalarium(item.ParentSheetIndex);
+                    }
+                    else
+                    {
+                        container.heldObject.Value = (StardewValley.Object)null;
+                    }
+
+                    container.readyForHarvest.Value = false;
+                    container.showNextIndex.Value = false;
+
                 }
                 else
                 {
@@ -85,6 +102,37 @@ namespace BitwiseJonMods
             }
 
             return numItemsLoaded;
+        }
+
+        private int getMinutesForCrystalarium(int whichGem)
+        {
+            switch (whichGem)
+            {
+                case 60:
+                    return 3000;
+                case 62:
+                    return 2240;
+                case 64:
+                    return 3000;
+                case 66:
+                    return 1360;
+                case 68:
+                    return 1120;
+                case 70:
+                    return 2400;
+                case 72:
+                    return 7200;
+                case 80:
+                    return 420;
+                case 82:
+                    return 1300;
+                case 84:
+                    return 1120;
+                case 86:
+                    return 800;
+                default:
+                    return 5000;
+            }
         }
     }
 }

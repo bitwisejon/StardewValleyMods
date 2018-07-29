@@ -1,4 +1,8 @@
 ﻿# Release notes
+## 1.0.3
+* Added support for Stardew Valley v1.3 and Multiplayer.
+* Added support for Crystalariums.
+
 ## 1.0.2
 * Added support for Coops.
 

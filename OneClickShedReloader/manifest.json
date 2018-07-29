@@ -1,10 +1,10 @@
 ﻿{
    "Name": "One Click Shed Reloader",
    "Author": "Bitwise Jon",
-   "Version": "1.0.2",
+   "Version": "1.0.3",
    "Description": "Harvests/reloads all containers in shed, barn, or coop with one click.",
    "UniqueID": "BitwiseJonMods.OneClickShedReloader",
    "EntryDll": "BitwiseJonMods.OneClickShedReloader.dll",
-   "MinimumApiVersion": "2.0",
+   "MinimumApiVersion": "2.6-beta.21",
    "UpdateKeys": ["Nexus:2052"]
 }

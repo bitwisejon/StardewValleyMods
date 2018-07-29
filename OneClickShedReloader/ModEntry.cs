@@ -26,7 +26,8 @@ namespace BitwiseJonMods
             "Oil Maker",
             "Loom",
             "Mayonnaise Machine",
-            "Cheese Press"
+            "Cheese Press",
+            "Crystalarium"
         };
 
         private Building _currentTileBuilding = null;
@@ -58,7 +59,7 @@ namespace BitwiseJonMods
             //If the building is a shed or barn, show a tooltip with info about the containers inside. Make sure no menu is showing.
             if (_currentTileBuilding != null && Game1.activeClickableMenu == null)
             {
-                if (_supportedBuildingTypes.Any(b => _currentTileBuilding.buildingType.Contains(b)) && _currentTileBuilding.indoors != null)
+                if (_supportedBuildingTypes.Any(b => _currentTileBuilding.buildingType.Contains(b)) && _currentTileBuilding.indoors.Value != null)
                 {
                     //Get info about building contents
                     var buildingInfo = new BuildingContentsInfo(_currentTileBuilding, _supportedContainerTypes);
@@ -115,12 +116,12 @@ namespace BitwiseJonMods
                 //If world is ready (save is loaded) and player left clicked on a supported building, harvest and reload items in that building. Make sure menu is not showing.
                 if (Context.IsWorldReady && Game1.didPlayerJustLeftClick() && Game1.currentLocation is Farm farm && Game1.activeClickableMenu == null)
                 {
-                    Common.Utility.Log($"{DateTime.Now} - {Game1.player.name} left clicked on something on the farm.");
+                    Common.Utility.Log($"{DateTime.Now} - {Game1.player.Name} left clicked on something on the farm.");
 
                     if (DidPlayerClickOnASupportedBuilding())
                     {
                         e.SuppressButton();
-                        Common.Utility.Log($"{DateTime.Now} - {Game1.player.name} clicked on a supported building to harvest all supported containers within it.");
+                        Common.Utility.Log($"{DateTime.Now} - {Game1.player.Name} clicked on a supported building to harvest all supported containers within it.");
                         HarvestAllItemsInBuilding(_currentTileBuilding);
                     }
                 }
@@ -138,13 +139,13 @@ namespace BitwiseJonMods
             //Only supporting buildings on the farm and on left click since right-click sometimes asks if user wants to eat the item they are holding.
             if (_currentTileBuilding != null)
             {
-                Common.Utility.Log($"{DateTime.Now} - {Game1.player.name} clicked on a building.");
+                Common.Utility.Log($"{DateTime.Now} - {Game1.player.Name} clicked on a building.");
 
                 //Need to get tile location so we can tell if the building is close enough to the player for an action.
                 var tileLocation = GetCursorTileLocation();
 
                 //Is the building close to the player and one of the supported types?
-                if (_supportedBuildingTypes.Any(b => _currentTileBuilding.buildingType.Contains(b)) && _currentTileBuilding.indoors != null && StardewValley.Utility.tileWithinRadiusOfPlayer((int)tileLocation.X, (int)tileLocation.Y, 4, Game1.player))
+                if (_supportedBuildingTypes.Any(b => _currentTileBuilding.buildingType.Contains(b)) && _currentTileBuilding.indoors.Value != null && StardewValley.Utility.tileWithinRadiusOfPlayer((int)tileLocation.X, (int)tileLocation.Y, 4, Game1.player))
                 {
                     result = true;
                 }
