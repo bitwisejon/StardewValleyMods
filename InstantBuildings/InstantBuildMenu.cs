@@ -130,6 +130,7 @@ namespace BitwiseJonMods
             foreach (var blueprint in this.blueprints)
             {
                 blueprint.magical = true;
+                blueprint.daysToConstruct = 0;  //jon, 8/4/18: Attempt to fix problem with tractor garage not honoring the magical nature of the blueprint so it builds instantly.
 
                 if (!_config.BuildUsesResources)
                 {
@@ -420,7 +421,7 @@ namespace BitwiseJonMods
                         Game1.addHUDMessage(new HUDMessage(Game1.content.LoadString("Strings\\UI:Carpenter_CantDemolish_AnimalsHere"), Color.Red, 3500f));
                     else if (destroyed.indoors.Value != null && destroyed.indoors.Value.farmers.Count<Farmer>() > 0)
                         Game1.addHUDMessage(new HUDMessage(Game1.content.LoadString("Strings\\UI:Carpenter_CantDemolish_PlayerHere"), Color.Red, 3500f));
-                    else if (destroyed.indoors.Value is Cabin && (destroyed.indoors.Value as Cabin).farmhand.Value.isActive())
+                    else if (destroyed.indoors.Value is Cabin && (destroyed.indoors.Value as Cabin).farmhand.Value != null && (destroyed.indoors.Value as Cabin).farmhand.Value.isActive())  //jon, 8/4/18: Fixed bug where cabins cannot be destroyed if not in multiplayer.
                     {
                         Game1.addHUDMessage(new HUDMessage(Game1.content.LoadString("Strings\\UI:Carpenter_CantDemolish_FarmhandOnline"), Color.Red, 3500f));
                     }
@@ -583,6 +584,7 @@ namespace BitwiseJonMods
         {
             //Used to replace screen fades and clears to remove the blinking effect -- not needed since we are not flashing between Robin's shop and the farm.
             this.freeze = false;
+            Game1.displayFarmer = true;  //jon, 8/4/18: Attempt to fix disappearing character problem which I am having trouble reproducing but other players are getting.
         }
 
 
