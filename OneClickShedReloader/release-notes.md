@@ -1,4 +1,7 @@
 ﻿# Release notes
+## 1.0.4
+* Updated to only support the non-beta SMAPI 2.6 version.
+
 ## 1.0.3
 * Added support for Stardew Valley v1.3 and Multiplayer.
 * Added support for Crystalariums.
