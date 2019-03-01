@@ -1,4 +1,7 @@
 ﻿# Release notes
+## 1.0.6
+* Updated to support SMAPI 2.11 (and 3.0)
+
 ## 1.0.5
 * Updated to support SMAPI 2.9 and 3.0
 

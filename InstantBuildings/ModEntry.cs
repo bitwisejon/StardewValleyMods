@@ -74,7 +74,9 @@ namespace BitwiseJonMods
                         .GetField<List<BluePrint>>(menu, "blueprints")
                         .GetValue();
 
-                    tractorBlueprint = blueprints.SingleOrDefault(b => b.name == "TractorGarage");
+                    var tractorModName = "Tractor Garage";
+                    tractorBlueprint = blueprints.SingleOrDefault(b => b.displayName == tractorModName);
+                    if (tractorBlueprint == null) BitwiseJonMods.Common.Utility.Log(string.Format("Could not load Tractor blueprint since it did not exist in Carpenter menu with display name '{0}'.", tractorModName));
                     menu.exitThisMenu();
                 }
                 else
