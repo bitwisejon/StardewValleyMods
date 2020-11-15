@@ -3,6 +3,7 @@ using BitwiseJonMods.Common;
 using StardewValley.Objects;
 using StardewValley;
 using StardewValley.Locations;
+using System.Linq;
 
 namespace BitwiseJonMods
 {
@@ -19,55 +20,89 @@ namespace BitwiseJonMods
         {
             int numItemsHarvested = 0;
 
-            //Harvest items into inventory
-            foreach (var container in _buildingInfo.ReadyToHarvestContainers)
+            try
             {
-                //Get the item stored in the container
-                StardewValley.Item item = null;
-                if (container.name.Equals("Crystalarium"))
+                //Harvest items into inventory
+                foreach (var container in _buildingInfo.ReadyToHarvestContainers)
                 {
-                    item = (StardewValley.Item)container.heldObject.Value.getOne();
-                }
-                else
-                { 
-                    item = (StardewValley.Item)container.heldObject.Value;
-                }
-
-                //Make sure player can collect item and inventory is not already full
-                if (player.couldInventoryAcceptThisItem(item))
-                {
-                    //this.Monitor.Log($"  Harvesting item {item.Name} from container {container.Name} and placing in {player.Name}'s inventory.");
-                    if (!player.addItemToInventoryBool(item, false))
-                    {
-                        //Inventory was full - throw exception so we can show a message
-                        Common.Utility.Log($"  {player.Name} has run out of inventory space. Stopping harvest.");
-                        throw new InventoryFullException();
-                    }
-                    numItemsHarvested++;
-
-                    //Remove this item permanently from the container (except Crystalarium).
+                    //Get the item stored in the container
+                    StardewValley.Item item = null;
                     if (container.name.Equals("Crystalarium"))
                     {
-                        container.MinutesUntilReady = this.getMinutesForCrystalarium(item.ParentSheetIndex);
+                        item = (StardewValley.Item)container.heldObject.Value.getOne();
+                        if (TryAddItemToPlayerInventory(player, item, container)) numItemsHarvested++;
+                    }
+                    else if (container.name.Equals("Auto-Grabber"))
+                    {
+                        var chest = container.heldObject.Value as Chest;
+                        //Netcode.NetObjectList<Item> chestItems = new Netcode.NetObjectList<Item>();
+                        //chestItems.AddRange(chest.items.ToList());
+
+                        foreach (var chestItem in chest.items.ToList())
+                        {
+                            if (chestItem != null)
+                            {
+                                //Get stack size and add that to number of items harvested.
+                                if (TryAddItemToPlayerInventory(player, chestItem, container)) numItemsHarvested += chestItem.Stack;
+                            }
+                        }
                     }
                     else
                     {
-                        container.heldObject.Value = (StardewValley.Object)null;
+                        item = (StardewValley.Item)container.heldObject.Value;
+                        if (TryAddItemToPlayerInventory(player, item, container)) numItemsHarvested++;
                     }
-
-                    container.readyForHarvest.Value = false;
-                    container.showNextIndex.Value = false;
-
                 }
-                else
+            }
+            catch (InventoryFullException ex)
+            {
+                ex.NumItemsHarvestedBeforeFull = numItemsHarvested;
+                throw ex;
+            }
+
+            return numItemsHarvested;
+        }
+
+        private bool TryAddItemToPlayerInventory(Farmer player, Item item, Object container)
+        {
+            //Make sure player can collect item and inventory is not already full
+            if (player.couldInventoryAcceptThisItem(item))
+            {
+                //this.Monitor.Log($"  Harvesting item {item.Name} from container {container.Name} and placing in {player.Name}'s inventory.");
+                if (!player.addItemToInventoryBool(item, false))
                 {
                     //Inventory was full - throw exception so we can show a message
                     Common.Utility.Log($"  {player.Name} has run out of inventory space. Stopping harvest.");
                     throw new InventoryFullException();
                 }
+
+                //Remove this item permanently from the container (except Crystalarium).
+                if (container.name.Equals("Crystalarium"))
+                {
+                    container.MinutesUntilReady = this.getMinutesForCrystalarium(item.ParentSheetIndex);
+                }
+                else if (container.name.Equals("Auto-Grabber"))
+                {
+                    var chest = container.heldObject.Value as Chest;
+                    chest.items.Remove(item);
+                    chest.clearNulls();
+                }
+                else
+                {
+                    container.heldObject.Value = (StardewValley.Object)null;
+                }
+
+                container.readyForHarvest.Value = false;
+                container.showNextIndex.Value = false;
+            }
+            else
+            {
+                //Inventory was full - throw exception so we can show a message
+                Common.Utility.Log($"  {player.Name} has run out of inventory space. Stopping harvest.");
+                throw new InventoryFullException();
             }
 
-            return numItemsHarvested;
+            return true;
         }
 
         public int LoadContents(StardewValley.Farmer player)
@@ -101,6 +136,7 @@ namespace BitwiseJonMods
                                 }
                             }
 
+                            //TODO: furnace works (although try with few items than furnaces to be sure) but says nothing loaded. PerformObject... must be returning false for some reason.
                             if (container.performObjectDropInAction(player.ActiveObject, false, player))
                             {
                                 player.reduceActiveItemByOne();

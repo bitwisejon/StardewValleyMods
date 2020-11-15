@@ -4,6 +4,8 @@ namespace BitwiseJonMods
 {
     class InventoryFullException: Exception
     {
+        public int NumItemsHarvestedBeforeFull { get; set; }
+
         public InventoryFullException()
             : base() { }
 

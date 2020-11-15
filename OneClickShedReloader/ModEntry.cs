@@ -47,7 +47,8 @@ namespace BitwiseJonMods
             "Oil Maker",
             "Preserves Jar",
             "Recycling Machine",
-            "Seed Maker"
+            "Seed Maker",
+            "Auto-Grabber"
         };
 
         private GameLocation _currentTileLocation = null;
@@ -90,7 +91,7 @@ namespace BitwiseJonMods
                     var greenhouse = GetGreenHouseUnderCursor(Game1.currentCursorTile);
                     if (greenhouse != null)
                     {
-                        Common.Utility.Log($"{DateTime.Now.Ticks} Greenhouse under cursor!");
+                        //Common.Utility.Log($"{DateTime.Now.Ticks} Greenhouse under cursor!");
                         _currentTileLocation = greenhouse;
                         return;
                     }
@@ -99,7 +100,7 @@ namespace BitwiseJonMods
                     var cave = GetFarmCaveUnderCursor(Game1.currentCursorTile);
                     if (cave != null)
                     {
-                        Common.Utility.Log($"{DateTime.Now.Ticks} Cave under cursor!");
+                        //Common.Utility.Log($"{DateTime.Now.Ticks} Cave under cursor!");
                         _currentTileLocation = cave;
                         return;
                     }
@@ -202,7 +203,8 @@ namespace BitwiseJonMods
                 var instructions = GetToolTipInstructions(buildingInfo);
 
                 //Build and display tooltip
-                string tooltip = string.Format("{0} total containers{1}{2} ready to harvest{1}{3} ready to load{4}", buildingInfo.NumberOfContainers, Environment.NewLine, buildingInfo.NumberReadyToHarvest, buildingInfo.NumberReadyToLoad, instructions);
+                string readyToHarvestTip = buildingInfo.NumberReadyToHarvest != buildingInfo.NumberOfItems ? string.Format("{0} ready to harvest with {1} total {2}", buildingInfo.NumberReadyToHarvest, buildingInfo.NumberOfItems, buildingInfo.NumberOfItems == 1 ? "item" : "items") : string.Format("{0} ready to harvest", buildingInfo.NumberReadyToHarvest);
+                string tooltip = string.Format("{0} total containers{1}{2}{1}{3} ready to load{4}", buildingInfo.NumberOfContainers, Environment.NewLine, readyToHarvestTip, buildingInfo.NumberReadyToLoad, instructions);
                 IClickableMenu.drawHoverText(Game1.spriteBatch, tooltip, Game1.smallFont);
             }
         }
@@ -311,8 +313,9 @@ namespace BitwiseJonMods
             {
                 numItemsHarvested = buildingHandler.HarvestContents(Game1.player);
             }
-            catch (InventoryFullException)
+            catch (InventoryFullException ife)
             {
+                numItemsHarvested = ife.NumItemsHarvestedBeforeFull;
                 Game1.showRedMessage(Game1.content.LoadString("Strings\\StringsFromCSFiles:Crop.cs.588"));
             }
             catch (Exception ex)
@@ -322,8 +325,9 @@ namespace BitwiseJonMods
 
             if (numItemsHarvested > 0)
             {
+                var numContainersHarvested = buildingInfo.Containers.Count();
                 Game1.playSound("coin");
-                Game1.showGlobalMessage(string.Format("Harvested {0} {1}!", numItemsHarvested, numItemsHarvested == 1 ? "item" : "items"));
+                Game1.showGlobalMessage(string.Format("Harvested {0} {1} from {2} {3}!", numItemsHarvested, numItemsHarvested == 1 ? "item" : "items", numContainersHarvested, numContainersHarvested == 1 ? "container" : "containers"));
             }
             else
             {
