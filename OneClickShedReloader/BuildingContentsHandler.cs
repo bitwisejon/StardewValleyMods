@@ -136,7 +136,9 @@ namespace BitwiseJonMods
                                 }
                             }
 
-                            //TODO: furnace works (although try with few items than furnaces to be sure) but says nothing loaded. PerformObject... must be returning false for some reason.
+                            //Remember the held stack size so we can compare it afterwards since furnaces/charcoal kilns are weird.
+                            var originalStackSize = player.ActiveObject.Stack;
+
                             if (container.performObjectDropInAction(player.ActiveObject, false, player))
                             {
                                 player.reduceActiveItemByOne();
@@ -144,7 +146,15 @@ namespace BitwiseJonMods
                             }
                             else
                             {
-                                Common.Utility.Log($"  Unable to load item. Container {container.Name} does not accept items of type {player.ActiveObject.Name}.");
+                                //Furnace/charcoal kiln drop in action always returns false but since we first probed, the action should have been successful. Compare stacks to be sure.
+                                if ((container.Name == "Furnace" || container.Name == "Charcoal Kiln") && player.ActiveObject.Stack < originalStackSize)
+                                {
+                                    numItemsLoaded++;
+                                }
+                                else
+                                {
+                                    Common.Utility.Log($"  Unable to load item. Container {container.Name} does not accept items of type {player.ActiveObject.Name}.");
+                                }
                             }
                         }
                         finally
