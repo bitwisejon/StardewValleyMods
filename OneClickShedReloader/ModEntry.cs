@@ -10,6 +10,19 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+
+/// <summary>
+/// 11/14/20: Adding support for cellars and casks. Added code to detect hover over on house. 
+/// Add support for cabins with cellars - hit rectangle will be different - only owner of cabin can do it
+/// Add support for greenhouse
+/// Add support for autograbber - can I make this also grab all truffles on farm? Activate through config.
+/// Add language support?
+/// 
+/// NOTE: Instead of keeping track of building, use building.indoors since this is a GameLocation as is the cellar - then use indoors/objects to get stuff
+/// The greenhouse is also a game location so it should have objects as well without using indoors.
+///   
+/// 
+/// </summary>
 namespace BitwiseJonMods
 {
     public class ModEntry : Mod
@@ -21,17 +34,23 @@ namespace BitwiseJonMods
         };
 
         private List<string> _supportedContainerTypes = new List<string>() {
-            "Preserves Jar",
-            "Keg",
-            "Oil Maker",
-            "Loom",
-            "Mayonnaise Machine",
+            "Bee House",
+            "Cask",
+            "Charcoal Kiln",
             "Cheese Press",
             "Crystalarium",
+            "Furnace",
+            "Keg",
+            "Loom",
+            "Mayonnaise Machine",
+            "Mushroom Box",
+            "Oil Maker",
+            "Preserves Jar",
+            "Recycling Machine",
             "Seed Maker"
         };
 
-        private Building _currentTileBuilding = null;
+        private GameLocation _currentTileLocation = null;
 
         public override void Entry(IModHelper helper)
         {
@@ -50,42 +69,151 @@ namespace BitwiseJonMods
                 //See if we have a building under the cursor
                 if (Game1.currentLocation is BuildableGameLocation buildableLocation)
                 {
-                    _currentTileBuilding = buildableLocation.getBuildingAt(Game1.currentCursorTile);
+                    var building = buildableLocation.getBuildingAt(Game1.currentCursorTile);
+
+                    if (building != null && _supportedBuildingTypes.Any(b => building.buildingType.Contains(b)))
+                    {
+                        _currentTileLocation = building.indoors.Value;
+                        return;
+                    }
+
+                    //See if we have the farmhouse or a cabin under the cursor that has a cellar
+                    var cellar = GetCellarForFarmHouseUnderCursor(Game1.currentCursorTile);
+                    if (cellar != null)
+                    {
+                        //Common.Utility.Log($"{DateTime.Now.Ticks} House/Cabin under cursor has a cellar!");
+                        _currentTileLocation = cellar;
+                        return;
+                    }
+
+                    //See if we have the greenhouse under the cursor
+                    var greenhouse = GetGreenHouseUnderCursor(Game1.currentCursorTile);
+                    if (greenhouse != null)
+                    {
+                        Common.Utility.Log($"{DateTime.Now.Ticks} Greenhouse under cursor!");
+                        _currentTileLocation = greenhouse;
+                        return;
+                    }
+
+                    //See if we have the farm cave under the cursor
+                    var cave = GetFarmCaveUnderCursor(Game1.currentCursorTile);
+                    if (cave != null)
+                    {
+                        Common.Utility.Log($"{DateTime.Now.Ticks} Cave under cursor!");
+                        _currentTileLocation = cave;
+                        return;
+                    }
                 }
-                else
+
+                //If we made it here, user is not hovering over supported building so set to null to hide tooltip
+                _currentTileLocation = null;
+            }
+        }
+
+        private Cellar GetCellarForFarmHouseUnderCursor(Vector2 cursorTile)
+        {
+            Cellar result = null;
+
+            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm) return result;
+
+            //Get house/cabin rectangle by finding the porch standing spot and creating house/cabin-size rectangle above it
+            var homeOfFarmer = Utility.getHomeOfFarmer(Game1.player);
+            var porchSpot = homeOfFarmer.getPorchStandingSpot();
+            var hitRectangle = (homeOfFarmer is Cabin) ? new Rectangle(porchSpot.X - 5, porchSpot.Y - 3, 7, 3) : new Rectangle(porchSpot.X - 7, porchSpot.Y - 4, 9, 4);
+
+            //We only have a hit if the user is hovering over their cabin/house and that cabin/house has a cellar (upgrade level 3).
+            var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle);
+            if (isHit && Game1.player.houseUpgradeLevel == 3)
+            {
+                result = Game1.getLocationFromName(homeOfFarmer.GetCellarName()) as Cellar;
+            }
+
+            return result;
+        }
+
+        private GameLocation GetGreenHouseUnderCursor(Vector2 cursorTile)
+        {
+            GameLocation result = null;
+
+            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm) return result;
+
+            //I *think* a greenhouse is only returned here if the user actually has it. If just the ruins, it should return null.
+            var greenhouse = Game1.getLocationFromName("GreenHouse");
+            if (greenhouse != null && greenhouse.warps != null && greenhouse.warps.Count() > 0)
+            {
+                var mainDoorPoint = new Point(greenhouse.warps[0].TargetX, greenhouse.warps[0].TargetY);
+                var hitRectangle = new Rectangle(mainDoorPoint.X - 3, mainDoorPoint.Y - 6, 7, 6);
+
+                //Only consistent way to tell if player has greenhouse is to check if player has or will receive pantry mail?
+                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle);
+                if (isHit && (Game1.player.hasOrWillReceiveMail("jojaPantry") || Game1.player.hasOrWillReceiveMail("ccPantry")))
                 {
-                    _currentTileBuilding = null;
+                    result = greenhouse;
                 }
             }
+
+            return result;
+        }
+
+        private GameLocation GetFarmCaveUnderCursor(Vector2 cursorTile)
+        {
+            GameLocation result = null;
+
+            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm) return result;
+
+            var cave = Game1.getLocationFromName("FarmCave") as FarmCave;
+            if (cave != null && cave.warps != null && cave.warps.Count() > 0)
+            {
+                var mainDoorPoint = new Point(cave.warps[0].TargetX, cave.warps[0].TargetY);
+                var hitRectangle = new Rectangle(mainDoorPoint.X - 1, mainDoorPoint.Y - 1, 3, 3);
+
+                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle);
+                if (isHit)
+                {
+                    result = cave;
+                }
+            }
+
+            return result;
+        }
+
+        private bool isPointInRectangle(Point cursorTilePoint, Rectangle hitRect)
+        {
+            if (cursorTilePoint.X >= hitRect.X && cursorTilePoint.X < hitRect.X + hitRect.Width && cursorTilePoint.Y >= hitRect.Y && cursorTilePoint.Y < hitRect.Y + hitRect.Height)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
         }
 
         private void DrawHoverTooltip(object sender, RenderingHudEventArgs e)
         {
-            //If the building is a shed or barn, show a tooltip with info about the containers inside. Make sure no menu is showing.
-            if (_currentTileBuilding != null && Game1.activeClickableMenu == null)
+            //If the building is a supported building, show a tooltip with info about the containers inside. Make sure no menu is showing.
+            if (_currentTileLocation != null && Game1.activeClickableMenu == null)
             {
-                if (_supportedBuildingTypes.Any(b => _currentTileBuilding.buildingType.Contains(b)) && _currentTileBuilding.indoors.Value != null)
-                {
-                    //Get info about building contents
-                    var buildingInfo = new BuildingContentsInfo(_currentTileBuilding, _supportedContainerTypes);
+                //Get info about location contents
+                var buildingInfo = new BuildingContentsInfo(_currentTileLocation, _supportedContainerTypes);
 
-                    //Building instructions depending on proximity to building and if player is holding an item.
-                    var instructions = GetToolTipInstructions(buildingInfo);
-                                       
-                    //Build and display tooltip
-                    string tooltip = string.Format("{0} total containers{1}{2} ready to harvest{1}{3} ready to load{4}", buildingInfo.NumberOfContainers, Environment.NewLine, buildingInfo.NumberReadyToHarvest, buildingInfo.NumberReadyToLoad, instructions);
-                    IClickableMenu.drawHoverText(Game1.spriteBatch, tooltip, Game1.smallFont);
-                }
+                //Building instructions depending on proximity to building and if player is holding an item.
+                var instructions = GetToolTipInstructions(buildingInfo);
+
+                //Build and display tooltip
+                string tooltip = string.Format("{0} total containers{1}{2} ready to harvest{1}{3} ready to load{4}", buildingInfo.NumberOfContainers, Environment.NewLine, buildingInfo.NumberReadyToHarvest, buildingInfo.NumberReadyToLoad, instructions);
+                IClickableMenu.drawHoverText(Game1.spriteBatch, tooltip, Game1.smallFont);
             }
         }
 
         private string GetToolTipInstructions(BuildingContentsInfo buildingInfo)
         {
-            string instructions = ""; 
+            string instructions = "";
 
             //Let's see if player is close enough to harvest/load
             var tileLocation = GetCursorTileLocation();
-            var isPlayerClose = StardewValley.Utility.tileWithinRadiusOfPlayer((int)tileLocation.X, (int)tileLocation.Y, 4, Game1.player);
+            var isPlayerClose = Utility.tileWithinRadiusOfPlayer((int)tileLocation.X, (int)tileLocation.Y, 4, Game1.player);
             var isPlayerHoldingItem = (Game1.player.ActiveObject != null);
             var anyItemsToHarvest = buildingInfo.NumberReadyToHarvest > 0;
             var anyItemsToLoad = buildingInfo.NumberReadyToLoad > 0;
@@ -127,7 +255,7 @@ namespace BitwiseJonMods
                     {
                         Helper.Input.Suppress(e.Button);
                         Common.Utility.Log($"{DateTime.Now} - {Game1.player.Name} clicked on a supported building to harvest all supported containers within it.");
-                        HarvestAllItemsInBuilding(_currentTileBuilding);
+                        HarvestAllItemsInBuilding(_currentTileLocation);
                     }
                 }
             }
@@ -142,15 +270,16 @@ namespace BitwiseJonMods
             bool result = false;
 
             //Only supporting buildings on the farm and on left click since right-click sometimes asks if user wants to eat the item they are holding.
-            if (_currentTileBuilding != null)
+            //jon, 11/14/20: _currentTileLocation is only set now if building is in supported list (or is house/cellar)
+            if (_currentTileLocation != null)
             {
                 Common.Utility.Log($"{DateTime.Now} - {Game1.player.Name} clicked on a building.");
 
                 //Need to get tile location so we can tell if the building is close enough to the player for an action.
                 var tileLocation = GetCursorTileLocation();
 
-                //Is the building close to the player and one of the supported types?
-                if (_supportedBuildingTypes.Any(b => _currentTileBuilding.buildingType.Contains(b)) && _currentTileBuilding.indoors.Value != null && StardewValley.Utility.tileWithinRadiusOfPlayer((int)tileLocation.X, (int)tileLocation.Y, 4, Game1.player))
+                //Is the building close to the player?
+                if (Utility.tileWithinRadiusOfPlayer((int)tileLocation.X, (int)tileLocation.Y, 4, Game1.player))
                 {
                     result = true;
                 }
@@ -164,9 +293,9 @@ namespace BitwiseJonMods
             return new Vector2((int)(Game1.getOldMouseX() + Game1.viewport.X) / Game1.tileSize, (int)(Game1.getOldMouseY() + Game1.viewport.Y) / Game1.tileSize);
         }
 
-        private void HarvestAllItemsInBuilding(Building building)
+        private void HarvestAllItemsInBuilding(GameLocation location)
         {
-            var buildingInfo = new BuildingContentsInfo(building, _supportedContainerTypes);
+            var buildingInfo = new BuildingContentsInfo(location, _supportedContainerTypes);
 
             Common.Utility.Log($"  {buildingInfo.Containers.Count()} containers found in building.");
             Common.Utility.Log($"  Of these containers, {buildingInfo.ReadyToHarvestContainers.Count()} are ready for harvest.");

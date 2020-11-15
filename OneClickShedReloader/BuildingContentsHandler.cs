@@ -1,6 +1,8 @@
 ﻿using StardewModdingAPI;
 using BitwiseJonMods.Common;
-
+using StardewValley.Objects;
+using StardewValley;
+using StardewValley.Locations;
 
 namespace BitwiseJonMods
 {
@@ -38,7 +40,7 @@ namespace BitwiseJonMods
                     if (!player.addItemToInventoryBool(item, false))
                     {
                         //Inventory was full - throw exception so we can show a message
-                        Utility.Log($"  {player.Name} has run out of inventory space. Stopping harvest.");
+                        Common.Utility.Log($"  {player.Name} has run out of inventory space. Stopping harvest.");
                         throw new InventoryFullException();
                     }
                     numItemsHarvested++;
@@ -60,7 +62,7 @@ namespace BitwiseJonMods
                 else
                 {
                     //Inventory was full - throw exception so we can show a message
-                    Utility.Log($"  {player.Name} has run out of inventory space. Stopping harvest.");
+                    Common.Utility.Log($"  {player.Name} has run out of inventory space. Stopping harvest.");
                     throw new InventoryFullException();
                 }
             }
@@ -79,26 +81,52 @@ namespace BitwiseJonMods
                     if (player.ActiveObject != null)
                     {
                         //this.Monitor.Log($"  {player.Name} is holding {player.ActiveObject.Name} so placing it in container {container.Name}.");
-                        if (container.performObjectDropInAction(player.ActiveObject, false, player))
+
+                        //jon, 11/14/20: If the container is a cask, we need to make sure it is in a cellar. Also, the game automatically detects the player
+                        //  is standing outside and rejects putting items in casks by default. So we need to fake the current location as being in that cellar
+                        //  for the length of time it takes to put the objects in.
+                        //Save the actual current location so we can reset it later
+                        var currentLocation = player.currentLocation;
+
+                        try
                         {
-                            player.reduceActiveItemByOne();
-                            numItemsLoaded++;
+                            if (container is Cask)
+                            {
+                                //Make sure the container is in the cellar and move the player there temporarily (does not show on screen)
+                                var homeOfFarmer = StardewValley.Utility.getHomeOfFarmer(player);
+                                var cellar = Game1.getLocationFromName(homeOfFarmer.GetCellarName()) as Cellar;
+                                if (cellar != null && _buildingInfo.IsCellar)
+                                {
+                                    player.currentLocation = cellar;
+                                }
+                            }
+
+                            if (container.performObjectDropInAction(player.ActiveObject, false, player))
+                            {
+                                player.reduceActiveItemByOne();
+                                numItemsLoaded++;
+                            }
+                            else
+                            {
+                                Common.Utility.Log($"  Unable to load item. Container {container.Name} does not accept items of type {player.ActiveObject.Name}.");
+                            }
                         }
-                        else
+                        finally
                         {
-                            Utility.Log($"  Unable to load item. Container {container.Name} does not accept items of type {player.ActiveObject.Name}.");
+                            //Reset player's location in case it was temporarily moved for inserting to a cask
+                            if (player.currentLocation != currentLocation) player.currentLocation = currentLocation;
                         }
                     }
                     else
                     {
-                        Utility.Log($"  {player.Name} has run out of items to load. Stopping load.");
+                        Common.Utility.Log($"  {player.Name} has run out of items to load. Stopping load.");
                         break;
                     }
                 }
             }
             else
             {
-                Utility.Log($"  {player.Name} is not holding an item, so not loading containers.");
+                Common.Utility.Log($"  {player.Name} is not holding an item, so not loading containers.");
             }
 
             return numItemsLoaded;
