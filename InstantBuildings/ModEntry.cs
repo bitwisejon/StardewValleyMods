@@ -18,12 +18,10 @@ namespace BitwiseJonMods
     {
         private ModConfig _config;
         private bool _tractorModFound = false;
-        private IModHelper _helper;
 
         public override void Entry(IModHelper helper)
         {
             BitwiseJonMods.Common.Utility.InitLogging(this.Monitor);
-            _helper = helper;
             _config = helper.ReadConfig<ModConfig>();
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
         }
@@ -204,7 +202,7 @@ namespace BitwiseJonMods
             if (!(homeOfFarmer is Cabin))
             {
                 //Use reflection to update house texture in otherwise private variable of Farm class.
-                var houseSource = _helper.Reflection.GetField<NetRectangle>(Game1.getFarm(), "houseSource");
+                var houseSource = Helper.Reflection.GetField<NetRectangle>(Game1.getFarm(), "houseSource");
                 var rect = new Microsoft.Xna.Framework.Rectangle(0, 144 * ((int)((NetFieldBase<int, NetInt>)Game1.MasterPlayer.houseUpgradeLevel) == 3 ? 2 : (int)((NetFieldBase<int, NetInt>)Game1.MasterPlayer.houseUpgradeLevel)), 160, 144);
                 houseSource.GetValue().Value = rect;
             }

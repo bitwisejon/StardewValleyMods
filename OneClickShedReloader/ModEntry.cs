@@ -111,11 +111,13 @@ namespace BitwiseJonMods
             }
         }
 
+        //jon, 11/21/20: Due to a current limitation with SMAPI, locations outside of the farm, farmhouse, and farm buildings are not synced to
+        //  other players. Therefore, we cannot support harvesting the cellar unless the player is the main player.
         private Cellar GetCellarForFarmHouseUnderCursor(Vector2 cursorTile)
         {
             Cellar result = null;
 
-            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm) return result;
+            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm || !Context.IsMainPlayer) return result;
 
             //Get house/cabin rectangle by finding the porch standing spot and creating house/cabin-size rectangle above it
             var homeOfFarmer = Utility.getHomeOfFarmer(Game1.player);
@@ -126,17 +128,20 @@ namespace BitwiseJonMods
             var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle);
             if (isHit && Game1.player.houseUpgradeLevel == 3)
             {
+                Common.Utility.Log($"{DateTime.Now} - {Game1.player.Name} Cellar name: {homeOfFarmer.GetCellarName()}.");
                 result = Game1.getLocationFromName(homeOfFarmer.GetCellarName()) as Cellar;
             }
 
             return result;
         }
 
+        //jon, 11/21/20: Due to a current limitation with SMAPI, locations outside of the farm, farmhouse, and farm buildings are not synced to
+        //  other players. Therefore, we cannot support harvesting the greenhouse unless the player is the main player.
         private GameLocation GetGreenHouseUnderCursor(Vector2 cursorTile)
         {
             GameLocation result = null;
 
-            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm) return result;
+            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm || !Context.IsMainPlayer) return result;
 
             //I *think* a greenhouse is only returned here if the user actually has it. If just the ruins, it should return null.
             var greenhouse = Game1.getLocationFromName("GreenHouse");
@@ -156,11 +161,13 @@ namespace BitwiseJonMods
             return result;
         }
 
+        //jon, 11/21/20: Due to a current limitation with SMAPI, locations outside of the farm, farmhouse, and farm buildings are not synced to
+        //  other players. Therefore, we cannot support harvesting the cave unless the player is the main player.
         private GameLocation GetFarmCaveUnderCursor(Vector2 cursorTile)
         {
             GameLocation result = null;
 
-            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm) return result;
+            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm || !Context.IsMainPlayer) return result;
 
             var cave = Game1.getLocationFromName("FarmCave") as FarmCave;
             if (cave != null && cave.warps != null && cave.warps.Count() > 0)
