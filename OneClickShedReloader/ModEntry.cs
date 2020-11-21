@@ -120,7 +120,7 @@ namespace BitwiseJonMods
             //Get house/cabin rectangle by finding the porch standing spot and creating house/cabin-size rectangle above it
             var homeOfFarmer = Utility.getHomeOfFarmer(Game1.player);
             var porchSpot = homeOfFarmer.getPorchStandingSpot();
-            var hitRectangle = (homeOfFarmer is Cabin) ? new Rectangle(porchSpot.X - 5, porchSpot.Y - 3, 7, 3) : new Rectangle(porchSpot.X - 7, porchSpot.Y - 4, 9, 4);
+            var hitRectangle = (homeOfFarmer is Cabin) ? new Rectangle(porchSpot.X - 1, porchSpot.Y - 3, 5, 3) : new Rectangle(porchSpot.X - 7, porchSpot.Y - 4, 9, 4);
 
             //We only have a hit if the user is hovering over their cabin/house and that cabin/house has a cellar (upgrade level 3).
             var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle);
