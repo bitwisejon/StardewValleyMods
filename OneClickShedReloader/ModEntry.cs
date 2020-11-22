@@ -77,34 +77,35 @@ namespace BitwiseJonMods
                         _currentTileLocation = building.indoors.Value;
                         return;
                     }
-
-                    //See if we have the farmhouse or a cabin under the cursor that has a cellar
-                    var cellar = GetCellarForFarmHouseUnderCursor(Game1.currentCursorTile);
-                    if (cellar != null)
-                    {
-                        //Common.Utility.Log($"{DateTime.Now.Ticks} House/Cabin under cursor has a cellar!");
-                        _currentTileLocation = cellar;
-                        return;
-                    }
-
-                    //See if we have the greenhouse under the cursor
-                    var greenhouse = GetGreenHouseUnderCursor(Game1.currentCursorTile);
-                    if (greenhouse != null)
-                    {
-                        //Common.Utility.Log($"{DateTime.Now.Ticks} Greenhouse under cursor!");
-                        _currentTileLocation = greenhouse;
-                        return;
-                    }
-
-                    //See if we have the farm cave under the cursor
-                    var cave = GetFarmCaveUnderCursor(Game1.currentCursorTile);
-                    if (cave != null)
-                    {
-                        //Common.Utility.Log($"{DateTime.Now.Ticks} Cave under cursor!");
-                        _currentTileLocation = cave;
-                        return;
-                    }
                 }
+
+                //See if we have the farmhouse or a cabin under the cursor that has a cellar
+                var cellar = GetCellarForFarmHouseUnderCursor(Game1.currentCursorTile);
+                if (cellar != null)
+                {
+                    //Common.Utility.Log($"{DateTime.Now.Ticks} House/Cabin under cursor has a cellar!");
+                    _currentTileLocation = cellar;
+                    return;
+                }
+
+                //See if we have the greenhouse under the cursor
+                var greenhouse = GetGreenHouseUnderCursor(Game1.currentCursorTile);
+                if (greenhouse != null)
+                {
+                    //Common.Utility.Log($"{DateTime.Now.Ticks} Greenhouse under cursor!");
+                    _currentTileLocation = greenhouse;
+                    return;
+                }
+
+                //See if we have the farm cave under the cursor
+                var cave = GetFarmCaveUnderCursor(Game1.currentCursorTile);
+                if (cave != null)
+                {
+                    //Common.Utility.Log($"{DateTime.Now.Ticks} Cave under cursor!");
+                    _currentTileLocation = cave;
+                    return;
+                }
+
 
                 //If we made it here, user is not hovering over supported building so set to null to hide tooltip
                 _currentTileLocation = null;
@@ -116,20 +117,40 @@ namespace BitwiseJonMods
         private Cellar GetCellarForFarmHouseUnderCursor(Vector2 cursorTile)
         {
             Cellar result = null;
+            Rectangle? hitRectangle = null;
 
-            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm || !Context.IsMainPlayer) return result;
+            //Player's cabin/house must have a cellar (upgrade level 3).
+            if (Game1.currentLocation == null || Game1.player.houseUpgradeLevel < 3) return null;
 
-            //Get house/cabin rectangle by finding the porch standing spot and creating house/cabin-size rectangle above it
             var homeOfFarmer = Utility.getHomeOfFarmer(Game1.player);
-            var porchSpot = homeOfFarmer.getPorchStandingSpot();
-            var hitRectangle = (homeOfFarmer is Cabin) ? new Rectangle(porchSpot.X - 1, porchSpot.Y - 3, 5, 3) : new Rectangle(porchSpot.X - 7, porchSpot.Y - 4, 9, 4);
+            if (homeOfFarmer == null) return null;
 
-            //We only have a hit if the user is hovering over their cabin/house and that cabin/house has a cellar (upgrade level 3).
-            var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle);
-            if (isHit && Game1.player.houseUpgradeLevel == 3)
+            if (Game1.currentLocation.IsFarm && Game1.currentLocation.IsOutdoors && Context.IsMainPlayer)
             {
-                Common.Utility.Log($"{DateTime.Now} - {Game1.player.Name} Cellar name: {homeOfFarmer.GetCellarName()}.");
-                result = Game1.getLocationFromName(homeOfFarmer.GetCellarName()) as Cellar;
+                //Main player only can do this from the outside of the building
+
+                //Get house/cabin rectangle by finding the porch standing spot and creating house/cabin-size rectangle above it
+                var porchSpot = homeOfFarmer.getPorchStandingSpot();
+                hitRectangle = (homeOfFarmer is Cabin) ? new Rectangle(porchSpot.X - 1, porchSpot.Y - 3, 5, 3) : new Rectangle(porchSpot.X - 7, porchSpot.Y - 4, 9, 4);
+
+                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle.Value);
+                if (isHit)
+                {
+                    result = Game1.getLocationFromName(homeOfFarmer.GetCellarName()) as Cellar;
+                }
+            }
+            else if (Game1.currentLocation.Name == homeOfFarmer.GetCellarName())
+            {
+                //Other players have to actually be inside the location for the game to sync the contents
+                var cellar = Game1.currentLocation as Cellar;
+                var mainDoorPoint = new Point(cellar.warps[0].X, cellar.warps[0].Y);
+                hitRectangle = new Rectangle(mainDoorPoint.X - 2, mainDoorPoint.Y, 6, 3);
+
+                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle.Value);
+                if (isHit)
+                {
+                    result = cellar;
+                }
             }
 
             return result;
@@ -140,21 +161,37 @@ namespace BitwiseJonMods
         private GameLocation GetGreenHouseUnderCursor(Vector2 cursorTile)
         {
             GameLocation result = null;
+            Rectangle? hitRectangle = null;
 
-            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm || !Context.IsMainPlayer) return result;
+            if (Game1.currentLocation == null) return null;
 
-            //I *think* a greenhouse is only returned here if the user actually has it. If just the ruins, it should return null.
+            //Only consistent way to tell if player has greenhouse is to check if main player has or will receive pantry mail.
             var greenhouse = Game1.getLocationFromName("GreenHouse");
-            if (greenhouse != null && greenhouse.warps != null && greenhouse.warps.Count() > 0)
-            {
-                var mainDoorPoint = new Point(greenhouse.warps[0].TargetX, greenhouse.warps[0].TargetY);
-                var hitRectangle = new Rectangle(mainDoorPoint.X - 3, mainDoorPoint.Y - 6, 7, 6);
+            if (greenhouse == null || greenhouse.warps == null || greenhouse.warps.Count() == 0 || (!Game1.MasterPlayer.hasOrWillReceiveMail("jojaPantry") && !Game1.MasterPlayer.hasOrWillReceiveMail("ccPantry"))) return null;
 
-                //Only consistent way to tell if player has greenhouse is to check if player has or will receive pantry mail?
-                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle);
-                if (isHit && (Game1.player.hasOrWillReceiveMail("jojaPantry") || Game1.player.hasOrWillReceiveMail("ccPantry")))
+            if (Game1.currentLocation.IsFarm && Game1.currentLocation.IsOutdoors && Context.IsMainPlayer)
+            {
+                //Only main player can load from outside
+                var mainDoorPoint = new Point(greenhouse.warps[0].TargetX, greenhouse.warps[0].TargetY);
+                hitRectangle = new Rectangle(mainDoorPoint.X - 3, mainDoorPoint.Y - 6, 7, 6);
+
+                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle.Value);
+                if (isHit)
                 {
                     result = greenhouse;
+                }
+            }
+            else if (Game1.currentLocation.Name == greenhouse.Name)
+            {
+                //Other players have to actually be inside the location for the game to sync the contents
+                var mainDoorPoint = new Point(greenhouse.warps[0].X, greenhouse.warps[0].Y);
+                hitRectangle = new Rectangle(mainDoorPoint.X - 2, mainDoorPoint.Y - 1, 5, 4);
+
+                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle.Value);
+                if (isHit)
+                {
+                    //Only the "currentLocation" object is synced with main game
+                    result = Game1.currentLocation;
                 }
             }
 
@@ -166,19 +203,36 @@ namespace BitwiseJonMods
         private GameLocation GetFarmCaveUnderCursor(Vector2 cursorTile)
         {
             GameLocation result = null;
+            Rectangle? hitRectangle = null;
 
-            if (Game1.currentLocation == null || !Game1.currentLocation.IsFarm || !Context.IsMainPlayer) return result;
+            if (Game1.currentLocation == null) return null;
 
-            var cave = Game1.getLocationFromName("FarmCave") as FarmCave;
-            if (cave != null && cave.warps != null && cave.warps.Count() > 0)
+            var farmcave = Game1.getLocationFromName("FarmCave") as FarmCave;
+            if (farmcave == null || farmcave.warps == null || farmcave.warps.Count() == 0) return null;
+
+            if (Game1.currentLocation.IsFarm && Game1.currentLocation.IsOutdoors && Context.IsMainPlayer)
             {
-                var mainDoorPoint = new Point(cave.warps[0].TargetX, cave.warps[0].TargetY);
-                var hitRectangle = new Rectangle(mainDoorPoint.X - 1, mainDoorPoint.Y - 1, 3, 3);
+                //Only main player can load from outside
+                var mainDoorPoint = new Point(farmcave.warps[0].TargetX, farmcave.warps[0].TargetY);
+                hitRectangle = hitRectangle = new Rectangle(mainDoorPoint.X - 1, mainDoorPoint.Y - 1, 3, 3);
 
-                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle);
+                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle.Value);
                 if (isHit)
                 {
-                    result = cave;
+                    result = farmcave;
+                }
+            }
+            else if (Game1.currentLocation.Name == farmcave.Name)
+            {
+                //Other players have to actually be inside the location for the game to sync the contents
+                var mainDoorPoint = new Point(farmcave.warps[0].X, farmcave.warps[0].Y);
+                hitRectangle = new Rectangle(mainDoorPoint.X - 2, mainDoorPoint.Y - 1, 5, 4);
+
+                var isHit = isPointInRectangle(Utility.Vector2ToPoint(cursorTile), hitRectangle.Value);
+                if (isHit)
+                {
+                    //Only the "currentLocation" object is synced with main game
+                    result = Game1.currentLocation;
                 }
             }
 
@@ -256,9 +310,8 @@ namespace BitwiseJonMods
             try
             {
                 //If world is ready (save is loaded) and player left clicked on a supported building, harvest and reload items in that building. Make sure menu is not showing.
-                if (Context.IsWorldReady && Game1.didPlayerJustLeftClick() && Game1.currentLocation is Farm farm && Game1.activeClickableMenu == null)
+                if (Context.IsWorldReady && Game1.didPlayerJustLeftClick() && _currentTileLocation != null && Game1.activeClickableMenu == null)
                 {
-                    Common.Utility.Log($"{DateTime.Now} - {Game1.player.Name} left clicked on something on the farm.");
 
                     if (DidPlayerClickOnASupportedBuilding())
                     {
