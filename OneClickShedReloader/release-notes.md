@@ -1,4 +1,9 @@
 ﻿# Release notes
+## 1.1.0
+* Support for the following building types: Cellar, Cave, Greenhouse
+* Support for the following container types: Bee House, Cask, Charcoal Kiln, Furnace, Mushroom Box, Recycling Machine, Auto-Grabber
+* Updated to support SMAPI 3.75 and Stardew Valley v1.45
+
 ## 1.0.7
 * Updated to support SMAPI 3.0 and Stardew Valley v1.4x
 
@@ -26,3 +31,12 @@
 * Support for the following building types: Shed, Barn
 * Support for the following container types: Preserves Jar, Keg, Oil Maker, Loom, Mayonnaise Machine, Cheese Press
 * English text only
+
+
+            
+
+
+
+
+
+
