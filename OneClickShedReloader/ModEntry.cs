@@ -77,7 +77,7 @@ namespace BitwiseJonMods
                     {
                         //jon, 12/22/20: Greenhouse is now a building and can be moved. But the building is just a shell with no indoors so we must get
                         //  the actual Greenhouse game location here to use for finding objects inside.
-                        if (building.buildingType == "Greenhouse")
+                        if (building.buildingType?.Value == "Greenhouse")
                         {
                             if (Game1.MasterPlayer.hasOrWillReceiveMail("jojaPantry") || Game1.MasterPlayer.hasOrWillReceiveMail("ccPantry"))
                             {
@@ -133,7 +133,7 @@ namespace BitwiseJonMods
             Rectangle? hitRectangle = null;
 
             //Player's cabin/house must have a cellar (upgrade level 3).
-            if (Game1.currentLocation == null || Game1.player.houseUpgradeLevel < 3) return null;
+            if (Game1.currentLocation == null || Game1.player.HouseUpgradeLevel < 3) return null;
 
             var homeOfFarmer = Utility.getHomeOfFarmer(Game1.player);
             if (homeOfFarmer == null) return null;
@@ -178,7 +178,7 @@ namespace BitwiseJonMods
 
             //Only consistent way to tell if player has greenhouse is to check if main player has or will receive pantry mail.
             var greenhouse = Game1.getLocationFromName("GreenHouse");
-            if (greenhouse == null || greenhouse.warps == null || greenhouse.warps.Count() == 0 || (!Game1.MasterPlayer.hasOrWillReceiveMail("jojaPantry") && !Game1.MasterPlayer.hasOrWillReceiveMail("ccPantry"))) return null;
+            if (greenhouse == null || greenhouse.warps?.Count == 0 || (!Game1.MasterPlayer.hasOrWillReceiveMail("jojaPantry") && !Game1.MasterPlayer.hasOrWillReceiveMail("ccPantry"))) return null;
 
             if (Game1.currentLocation.Name == greenhouse.Name)
             {
@@ -205,7 +205,7 @@ namespace BitwiseJonMods
             if (Game1.currentLocation == null) return null;
 
             var farmcave = Game1.getLocationFromName("FarmCave") as FarmCave;
-            if (farmcave == null || farmcave.warps == null || farmcave.warps.Count() == 0) return null;
+            if (farmcave == null || farmcave.warps?.Count == 0) return null;
 
             if (Game1.currentLocation.IsFarm && Game1.currentLocation.IsOutdoors && Context.IsMainPlayer)
             {
