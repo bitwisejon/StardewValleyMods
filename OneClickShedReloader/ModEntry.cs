@@ -12,6 +12,9 @@ using System.Linq;
 
 
 /// <summary>
+/// 1/31/24: Added support for the two statues - perfection and endless fortune. Also converted mods to .net 5.0 and SMAPI 3.18 in preparation for Stardew Valley 1.6.
+/// Idea: Load the hardcoded lists from the config file if they exist there to allow users to customize the list of support containers and buildings from mods.
+/// 
 /// 11/14/20: Adding support for cellars and casks. Added code to detect hover over on house. 
 /// Add support for cabins with cellars - hit rectangle will be different - only owner of cabin can do it
 /// Add support for greenhouse
@@ -49,7 +52,17 @@ namespace BitwiseJonMods
             "Preserves Jar",
             "Recycling Machine",
             "Seed Maker",
-            "Auto-Grabber"
+            "Auto-Grabber",
+            "Statue Of Endless Fortune", 
+            "Statue Of Perfection"
+        };
+
+        private List<string> _nonReloadableContainerTypes = new List<string>()
+        {
+            "Mushroom Box",
+            "Auto-Grabber",
+            "Statue Of Endless Fortune",
+            "Statue Of Perfection"
         };
 
         private GameLocation _currentTileLocation = null;
@@ -255,7 +268,7 @@ namespace BitwiseJonMods
             if (_currentTileLocation != null && Game1.activeClickableMenu == null)
             {
                 //Get info about location contents
-                var buildingInfo = new BuildingContentsInfo(_currentTileLocation, _supportedContainerTypes);
+                var buildingInfo = new BuildingContentsInfo(_currentTileLocation, _supportedContainerTypes, _nonReloadableContainerTypes);
 
                 //Building instructions depending on proximity to building and if player is holding an item.
                 var instructions = GetToolTipInstructions(buildingInfo);
@@ -354,7 +367,7 @@ namespace BitwiseJonMods
 
         private void HarvestAllItemsInBuilding(GameLocation location)
         {
-            var buildingInfo = new BuildingContentsInfo(location, _supportedContainerTypes);
+            var buildingInfo = new BuildingContentsInfo(location, _supportedContainerTypes, _nonReloadableContainerTypes);
 
             Common.Utility.Log($"  {buildingInfo.Containers.Count()} containers found in building.");
             Common.Utility.Log($"  Of these containers, {buildingInfo.ReadyToHarvestContainers.Count()} are ready for harvest.");
