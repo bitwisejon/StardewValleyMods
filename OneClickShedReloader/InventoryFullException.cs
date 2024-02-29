@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BitwiseJonMods
+namespace BitwiseJonMods.OneClickShedReloader
 {
     class InventoryFullException: Exception
     {

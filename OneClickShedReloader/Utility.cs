@@ -17,5 +17,10 @@ namespace BitwiseJonMods.Common
         {
             _monitor.Log(msg, level);
         }
+
+        public static void LogImportant(string msg, LogLevel level = LogLevel.Debug)
+        {
+            _monitor.Log(msg, level);
+        }
     }
 }
