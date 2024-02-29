@@ -12,8 +12,9 @@ using System.Linq;
 
 
 /// <summary>
+/// 2/29/24: Now loading all supported buildings and containers from the config file to help with mod support.
+/// 
 /// 1/31/24: Added support for the two statues - perfection and endless fortune. Also converted mods to .net 5.0 and SMAPI 3.18 in preparation for Stardew Valley 1.6.
-/// TODO: Load lists of supported containers and nonReloadableContainers from the config file (if they exist there) to allow users to customize them from other mods.
 /// 
 /// 11/14/20: Adding support for cellars and casks. Added code to detect hover over on house. 
 /// Add support for cabins with cellars - hit rectangle will be different - only owner of cabin can do it
