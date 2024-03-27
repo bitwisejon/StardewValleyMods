@@ -1,4 +1,5 @@
-﻿using StardewModdingAPI;
+﻿using GenericModConfigMenu;
+using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Menus;
@@ -14,6 +15,51 @@ namespace BitwiseJonMods
             BitwiseJonMods.Common.Utility.InitLogging(this.Monitor);
             _config = helper.ReadConfig<ModConfig>();
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
+            helper.Events.GameLoop.GameLaunched += this.ConfigMenu;
+        }
+
+        private void ConfigMenu(object sender, GameLaunchedEventArgs e) {
+            // get Generic Mod Config Menu's API (if it's installed)
+            var configMenu = this.Helper.ModRegistry.GetApi<IGenericModConfigMenuApi>("spacechase0.GenericModConfigMenu");
+            if (configMenu is null)
+                return;
+
+            // register mod
+            configMenu.Register(
+                mod: this.ModManifest,
+                reset: () => this._config= new ModConfig(),
+                save: () => this.Helper.WriteConfig(this._config)
+            );
+
+            configMenu.AddKeybind(
+                mod: this.ModManifest,
+                name: () => Helper.Translation.Get("options.toggleInstantBuildMenuButton"),
+                getValue: () => this._config.ToggleInstantBuildMenuButton,
+                setValue: value => this._config.ToggleInstantBuildMenuButton = value
+                );
+
+            configMenu.AddKeybind(
+                mod: this.ModManifest,
+                name: () => Helper.Translation.Get("options.performInstantHouseUpgradeButton"),
+                getValue: () => this._config.PerformInstantHouseUpgradeButton,
+                setValue: value => this._config.PerformInstantHouseUpgradeButton = value
+                );
+
+            configMenu.AddBoolOption(
+                mod: this.ModManifest,
+                name: () => Helper.Translation.Get("options.BuildUsesResources"),
+                getValue: () => this._config.BuildUsesResources,
+                setValue: value => this._config.BuildUsesResources = value
+                );
+
+            configMenu.AddBoolOption(
+                mod: this.ModManifest,
+                name: () => Helper.Translation.Get("options.allowMagicalBuildingsWithoutMagicInk"),
+                getValue: () => this._config.AllowMagicalBuildingsWithoutMagicInk,
+                setValue: value => this._config.AllowMagicalBuildingsWithoutMagicInk = value
+                );
+
+
         }
 
         private void OnGameLaunched(object sender, GameLaunchedEventArgs args)
