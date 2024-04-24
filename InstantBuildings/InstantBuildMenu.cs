@@ -17,7 +17,7 @@ namespace BitwiseJonMods
         private ModConfig _config;
 
         //Builder must be set to Robin or Wizard to avoid divide by zero error.
-        public InstantBuildMenu(ModConfig config) : base("Robin")
+        public InstantBuildMenu(ModConfig config) : base("Robin", Game1.currentLocation)
         {
             _config = config;
 
@@ -26,7 +26,7 @@ namespace BitwiseJonMods
             this.Blueprints.Clear();
             foreach (KeyValuePair<string, BuildingData> keyValuePair in (IEnumerable<KeyValuePair<string, BuildingData>>)Game1.buildingData)
             {
-                if (this.TargetLocation.Name == "Farm")
+                if (this.TargetLocation.IsBuildableLocation())
                 {
                     this.Blueprints.Add(GetNewModifiedBlueprint(num++, keyValuePair, (string)null));
                     if (keyValuePair.Value.Skins != null)
