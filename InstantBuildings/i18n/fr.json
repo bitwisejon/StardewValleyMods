@@ -1,0 +1,7 @@
+{
+  "options.toggleInstantBuildMenuButton": "Menu de construction",
+  "options.performInstantHouseUpgradeButton": "Amélioration de la maison",
+  "options.buildUsesResources": "Construire utilise des ressources",
+  "options.allowMagicalBuildingsWithoutMagicInk": "Construction sans Encre magique",
+  "options.allowMagicalBuildingsWithoutMagicInk.desc": "Autorise la construction de batiments magique sans avoir l'Encre magique"
+}

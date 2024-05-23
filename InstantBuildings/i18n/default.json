@@ -1,0 +1,7 @@
+{
+  "options.toggleInstantBuildMenuButton": "Open Build Menu",
+  "options.performInstantHouseUpgradeButton": "Instant House Upgrade",
+  "options.buildUsesResources": "Build uses resources",
+  "options.allowMagicalBuildingsWithoutMagicInk": "Magical building without Magic ink",
+  "options.allowMagicalBuildingsWithoutMagicInk.desc": "Allow Magical building without Magic ink own"
+}
